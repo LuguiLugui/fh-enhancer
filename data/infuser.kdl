@@ -111,7 +111,7 @@ card 199 "veil of protection" level=2 image-path="character-ability-cards/frosth
 
 card 200 "remote impact" level=2 image-path="character-ability-cards/frosthaven/if/fh-remote-impact.png" {
 	top {
-		enhancement kind=square ability=move
+		enhancement kind=square ability=attack
 		enhancement kind=hex number-of-hexes=3
 		enhancement kind=hex number-of-hexes=4
 	}
