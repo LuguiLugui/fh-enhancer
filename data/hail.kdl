@@ -77,23 +77,7 @@ card #nan "abundant nuisance" level=X image-path="character-ability-cards/mercen
 	bottom
 }
 card #nan "trial and success" level=X image-path="character-ability-cards/mercenary/HA/trial-and-success.jpeg" {
-	top lost=#true{
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-		enhancement kind=square ability=attack
-	}
+	top
 	bottom{
 		enhancement kind=circle ability=teleport
 	}

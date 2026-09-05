@@ -242,8 +242,6 @@ fh-action {
 	gap: 0.75lh 0.5lh;
 	grid-template-columns: max-content max-content [l] 1fr max-content [r];
 	align-content: start;
-	max-height: 11lh;
-	overflow-y: auto;
 }
 
 fh-action:has(fh-enhancement.multiple) {

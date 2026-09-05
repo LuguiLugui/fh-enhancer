@@ -196,17 +196,19 @@ await Promise.all(
 			if (character.meta.game === "merc") {
 				// Mercenary icon art is already a single-tone silhouette in the
 				// character's own color, unlike the neutral dark linework used by
-				// Frosthaven/GH2 icons, so the dest-atop technique below produces
-				// no visible contrast. Recolor the silhouette (like icon.png does)
-				// and place it on a plain white backing instead. (Chaining
-				// .flatten() directly after a blend:"in" composite doesn't
-				// reliably clear the alpha channel on this image, so the white
-				// backing is composited manually instead.)
-				const coloredIcon = await resized
+				// Frosthaven/GH2 icons, so the dest-atop technique below (which
+				// keeps the icon's native ink color) produces no visible contrast
+				// against a background of the same color. Recolor the silhouette
+				// to black instead (like icon--black.png does) and place it on a
+				// colored background, matching the FH/GH2 favicon style.
+				// (Chaining .flatten() directly after a blend:"in" composite
+				// doesn't reliably clear the alpha channel on this image, so the
+				// background is composited manually instead.)
+				const blackIcon = await resized
 					.composite([
 						{
 							input: Buffer.from(
-								`<svg><rect x="0" y="0" width="100" height="100" fill="${characterColor}"/></svg>`,
+								`<svg><rect x="0" y="0" width="100" height="100" fill="black"/></svg>`,
 							),
 							blend: "in",
 						},
@@ -219,10 +221,10 @@ await Promise.all(
 						width: 100,
 						height: 100,
 						channels: 4,
-						background: "#ffffff",
+						background: characterColor,
 					},
 				})
-					.composite([{input: coloredIcon, blend: "over"}])
+					.composite([{input: blackIcon, blend: "over"}])
 					.toFile(fileURLToPath(url));
 			}
 
