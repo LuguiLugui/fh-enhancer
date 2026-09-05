@@ -14,6 +14,7 @@ import {
 	worldhavenDataFolder,
 	worldhavenImagesFolder,
 	gloomhaven2CharacterOrder,
+	mercCharacterOrder,
 	gloomhavenCardBrowserImagesFolder,
 } from "./constants.js";
 import {
@@ -91,6 +92,7 @@ const characters = new Map();
 for (const characterName of [
 	frosthavenCharacterOrder,
 	gloomhaven2CharacterOrder,
+	mercCharacterOrder,
 ].flat()) {
 	characters.set(
 		characterName,
@@ -124,6 +126,15 @@ await Promise.all(
 			}
 
 			imageUrl = new URL(icon, worldhavenImagesFolder);
+		} else if (character.meta.game === "merc") {
+			if (!character.meta.shortName) {
+				throw new Error(`Couldn't find icon for ${characterName}`);
+			}
+
+			imageUrl = new URL(
+				`icons/characters/merc/${character.meta.shortName}.png`,
+				gloomhavenCardBrowserImagesFolder,
+			);
 		} else {
 			if (!character.meta.shortName) {
 				throw new Error(`Couldn't find icon for ${characterName}`);
@@ -165,8 +176,8 @@ await Promise.all(
 			);
 		}
 
-		makeAsset(`${characterName}/favicon.png`, (url) =>
-			sharp(image)
+		makeAsset(`${characterName}/favicon.png`, async (url) => {
+			const resized = sharp(image)
 				.rotate()
 				.resize({
 					width: 70,
@@ -180,7 +191,44 @@ await Promise.all(
 					right: 15,
 					bottom: 15,
 					left: 15,
+				});
+
+			if (character.meta.game === "merc") {
+				// Mercenary icon art is already a single-tone silhouette in the
+				// character's own color, unlike the neutral dark linework used by
+				// Frosthaven/GH2 icons, so the dest-atop technique below (which
+				// keeps the icon's native ink color) produces no visible contrast
+				// against a background of the same color. Recolor the silhouette
+				// to black instead (like icon--black.png does) and place it on a
+				// colored background, matching the FH/GH2 favicon style.
+				// (Chaining .flatten() directly after a blend:"in" composite
+				// doesn't reliably clear the alpha channel on this image, so the
+				// background is composited manually instead.)
+				const blackIcon = await resized
+					.composite([
+						{
+							input: Buffer.from(
+								`<svg><rect x="0" y="0" width="100" height="100" fill="black"/></svg>`,
+							),
+							blend: "in",
+						},
+					])
+					.png()
+					.toBuffer();
+
+				return sharp({
+					create: {
+						width: 100,
+						height: 100,
+						channels: 4,
+						background: characterColor,
+					},
 				})
+					.composite([{input: blackIcon, blend: "over"}])
+					.toFile(fileURLToPath(url));
+			}
+
+			return resized
 				.composite([
 					{
 						input: Buffer.from(
@@ -189,8 +237,8 @@ await Promise.all(
 						blend: "dest-atop",
 					},
 				])
-				.toFile(fileURLToPath(url)),
-		);
+				.toFile(fileURLToPath(url));
+		});
 	}),
 );
 
@@ -221,6 +269,10 @@ await Promise.all(
 			characterList.filter(
 				([, character]) => character.meta.game === "gloomhaven2",
 			),
+		],
+		[
+			"Mercenaries",
+			characterList.filter(([, character]) => character.meta.game === "merc"),
 		],
 	])) {
 		const listContainer = container.appendChild(document.createElement("div"));
@@ -262,7 +314,7 @@ await Promise.all(
 
 for (const [characterName, character] of characters) {
 	const jsdom = new JSDOM(
-		`<!doctype html><html lang=en class=character-${getGameIdentifier(character)}></html>`,
+		`<!doctype html><html lang=en class="character-${getGameIdentifier(character)} character-group-${character.meta.game}"></html>`,
 	);
 	const {document} = jsdom.window;
 
@@ -716,7 +768,7 @@ function addHeader(document, characterName, title) {
 
 		const isActive = otherCharacterName === characterName;
 		const item = characterList.appendChild(document.createElement("li"));
-		item.classList.add(`character--game-${getGameIdentifier(otherCharacter)}`);
+		item.classList.add(`character--group-${otherCharacter.meta.game}`);
 
 		let anchor = item
 			.appendChild(
@@ -765,6 +817,11 @@ function addHeader(document, characterName, title) {
 	titleContainer.className = "header__title";
 
 	titleContainer.appendChild(document.createElement("h1")).textContent = title;
+
+	const homeLink = titleContainer.appendChild(document.createElement("a"));
+	homeLink.className = "home-link";
+	homeLink.href = `../${buildForDeployment ? "" : "index.html"}`;
+	homeLink.textContent = "Home";
 
 	titleContainer.appendChild(
 		document.createElement("fh-enhancer-settings"),
@@ -834,5 +891,7 @@ function makeAsset(assetName, create) {
  * @param {PlayerCharacter?=} character
  */
 function getGameIdentifier(character) {
-	return character?.meta.game === "gloomhaven2" ? "gh2" : "fh";
+	return character?.meta.game === "gloomhaven2" || character?.meta.game === "merc"
+		? "gh2"
+		: "fh";
 }

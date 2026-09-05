@@ -122,6 +122,47 @@ for (const card of gloomhaven2AbilityCards) {
 	);
 }
 
+/** @type {{id: string; name: string; colour: string}[]} */
+const mercCharacters = JSON.parse(
+	await readFile(
+		new URL("characters/mercenary.json", gloomhavenCardBrowserDataFolder),
+		"utf8",
+	),
+);
+/** @type {{name: string; image: string; level: string}[]} */
+const mercCards = JSON.parse(
+	await readFile(
+		new URL(
+			"character-abilities/mercenary.json",
+			gloomhavenCardBrowserDataFolder,
+		),
+		"utf8",
+	),
+);
+for (const {id, name, colour} of mercCharacters) {
+	const cards = mercCards
+		.filter((card) => card.image.includes(`/mercenary/${id}/`))
+		.filter((card) => card.level !== "-") // skip the character-back reference card
+		.map(
+			(card) =>
+				new Card(
+					NaN,
+					card.name,
+					/** @type {Card['level']} */ (card.level === "X" ? "X" : +card.level),
+					card.image,
+					new Action(),
+					new Action(),
+				),
+		);
+
+	const character = new PlayerCharacter(
+		new CharacterMeta("merc", name, undefined, id, new Color(colour)),
+		cards,
+	);
+
+	abilitiesPerCharacter[name.toLowerCase()] = character;
+}
+
 await Promise.all(
 	Object.entries(abilitiesPerCharacter).map(async ([name, character]) => {
 		const characterFile = new URL(
