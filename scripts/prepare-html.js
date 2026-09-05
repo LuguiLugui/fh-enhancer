@@ -14,6 +14,7 @@ import {
 	worldhavenDataFolder,
 	worldhavenImagesFolder,
 	gloomhaven2CharacterOrder,
+	mercCharacterOrder,
 	gloomhavenCardBrowserImagesFolder,
 } from "./constants.js";
 import {
@@ -91,6 +92,7 @@ const characters = new Map();
 for (const characterName of [
 	frosthavenCharacterOrder,
 	gloomhaven2CharacterOrder,
+	mercCharacterOrder,
 ].flat()) {
 	characters.set(
 		characterName,
@@ -124,6 +126,15 @@ await Promise.all(
 			}
 
 			imageUrl = new URL(icon, worldhavenImagesFolder);
+		} else if (character.meta.game === "merc") {
+			if (!character.meta.shortName) {
+				throw new Error(`Couldn't find icon for ${characterName}`);
+			}
+
+			imageUrl = new URL(
+				`icons/characters/merc/${character.meta.shortName}.png`,
+				gloomhavenCardBrowserImagesFolder,
+			);
 		} else {
 			if (!character.meta.shortName) {
 				throw new Error(`Couldn't find icon for ${characterName}`);
@@ -221,6 +232,10 @@ await Promise.all(
 			characterList.filter(
 				([, character]) => character.meta.game === "gloomhaven2",
 			),
+		],
+		[
+			"Mercenaries",
+			characterList.filter(([, character]) => character.meta.game === "merc"),
 		],
 	])) {
 		const listContainer = container.appendChild(document.createElement("div"));
@@ -834,5 +849,7 @@ function makeAsset(assetName, create) {
  * @param {PlayerCharacter?=} character
  */
 function getGameIdentifier(character) {
-	return character?.meta.game === "gloomhaven2" ? "gh2" : "fh";
+	return character?.meta.game === "gloomhaven2" || character?.meta.game === "merc"
+		? "gh2"
+		: "fh";
 }
