@@ -176,8 +176,8 @@ await Promise.all(
 			);
 		}
 
-		makeAsset(`${characterName}/favicon.png`, (url) =>
-			sharp(image)
+		makeAsset(`${characterName}/favicon.png`, async (url) => {
+			const resized = sharp(image)
 				.rotate()
 				.resize({
 					width: 70,
@@ -191,7 +191,42 @@ await Promise.all(
 					right: 15,
 					bottom: 15,
 					left: 15,
+				});
+
+			if (character.meta.game === "merc") {
+				// Mercenary icon art is already a single-tone silhouette in the
+				// character's own color, unlike the neutral dark linework used by
+				// Frosthaven/GH2 icons, so the dest-atop technique below produces
+				// no visible contrast. Recolor the silhouette (like icon.png does)
+				// and place it on a plain white backing instead. (Chaining
+				// .flatten() directly after a blend:"in" composite doesn't
+				// reliably clear the alpha channel on this image, so the white
+				// backing is composited manually instead.)
+				const coloredIcon = await resized
+					.composite([
+						{
+							input: Buffer.from(
+								`<svg><rect x="0" y="0" width="100" height="100" fill="${characterColor}"/></svg>`,
+							),
+							blend: "in",
+						},
+					])
+					.png()
+					.toBuffer();
+
+				return sharp({
+					create: {
+						width: 100,
+						height: 100,
+						channels: 4,
+						background: "#ffffff",
+					},
 				})
+					.composite([{input: coloredIcon, blend: "over"}])
+					.toFile(fileURLToPath(url));
+			}
+
+			return resized
 				.composite([
 					{
 						input: Buffer.from(
@@ -200,8 +235,8 @@ await Promise.all(
 						blend: "dest-atop",
 					},
 				])
-				.toFile(fileURLToPath(url)),
-		);
+				.toFile(fileURLToPath(url));
+		});
 	}),
 );
 
@@ -277,7 +312,7 @@ await Promise.all(
 
 for (const [characterName, character] of characters) {
 	const jsdom = new JSDOM(
-		`<!doctype html><html lang=en class=character-${getGameIdentifier(character)}></html>`,
+		`<!doctype html><html lang=en class="character-${getGameIdentifier(character)} character-group-${character.meta.game}"></html>`,
 	);
 	const {document} = jsdom.window;
 
@@ -731,7 +766,7 @@ function addHeader(document, characterName, title) {
 
 		const isActive = otherCharacterName === characterName;
 		const item = characterList.appendChild(document.createElement("li"));
-		item.classList.add(`character--game-${getGameIdentifier(otherCharacter)}`);
+		item.classList.add(`character--group-${otherCharacter.meta.game}`);
 
 		let anchor = item
 			.appendChild(
@@ -780,6 +815,11 @@ function addHeader(document, characterName, title) {
 	titleContainer.className = "header__title";
 
 	titleContainer.appendChild(document.createElement("h1")).textContent = title;
+
+	const homeLink = titleContainer.appendChild(document.createElement("a"));
+	homeLink.className = "home-link";
+	homeLink.href = `../${buildForDeployment ? "" : "index.html"}`;
+	homeLink.textContent = "Home";
 
 	titleContainer.appendChild(
 		document.createElement("fh-enhancer-settings"),
