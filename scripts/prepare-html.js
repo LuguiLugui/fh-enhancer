@@ -723,6 +723,27 @@ for (const [characterName, character] of characters) {
 			// computation.setAttribute("persistent", "");
 		}
 
+		// Pre-compute the cost text for a first-time visitor (no stored
+		// settings, so enhancer level 1, no discount, nothing else bought,
+		// not temporary). runtime.js's FhCost#recompute() computes the exact
+		// same value when the page's script runs, so this just avoids
+		// rendering the element empty and then filling it in a moment later,
+		// which caused a visible reflow of the whole page (since every
+		// card's rows share grid tracks with their neighbours) - most
+		// visible on browsers without cross-document view transitions, which
+		// otherwise paper over the reflow by waiting for the destination
+		// page to settle before showing it.
+		const level = card.level === "X" ? 1 : +card.level;
+		let defaultCost = baseCost;
+		if (action.lost && !action.persistent) {
+			defaultCost /= 2;
+		}
+		if (multiple) {
+			defaultCost *= 2;
+		}
+		defaultCost += (level - 1) * 25;
+		computation.textContent = `${Math.max(0, Math.ceil(defaultCost))}g`;
+
 		return line;
 	}
 }
