@@ -49,7 +49,7 @@ const baseCostPerAbility = {
 	teleport: 50,
 
 	"summon hp": 40,
-	"summon move": 50,
+	"summon move": 60,
 	"summon attack": 100,
 	"summon range": 50,
 };
