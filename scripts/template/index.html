@@ -25,6 +25,16 @@
 				font-weight: 300;
 			}
 
+			body.e404::before {
+				position: fixed;
+				inset: 0;
+				content: "404";
+				font-size: min(100vw / 3ch * 1em, 100vh / 1rlh * 1em);
+				color: light-dark(#ffeeee, #400000);
+				z-index: -1;
+				font-weight: bolder;
+			}
+
 			h1,
 			h2 {
 				font-weight: 500;

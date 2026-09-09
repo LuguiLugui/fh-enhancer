@@ -310,6 +310,14 @@ await Promise.all(
 	}
 
 	await writeFile(new URL("index.html", outputFolder), jsdom.serialize());
+
+	document.body.classList.add("e404");
+	document.body.insertBefore(
+		document.createTextNode("The page you're visiting doesn't exist (anymore)."),
+		document.querySelector("main"),
+	);
+
+	await writeFile(new URL("404.html", outputFolder), jsdom.serialize());
 }
 
 for (const [characterName, character] of characters) {
@@ -912,7 +920,9 @@ function makeAsset(assetName, create) {
  * @param {PlayerCharacter?=} character
  */
 function getGameIdentifier(character) {
-	return character?.meta.game === "gloomhaven2" || character?.meta.game === "merc"
-		? "gh2"
-		: "fh";
+	return (
+			character?.meta.game === "gloomhaven2" || character?.meta.game === "merc"
+		) ?
+			"gh2"
+		:	"fh";
 }
