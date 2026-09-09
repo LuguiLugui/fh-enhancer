@@ -34,15 +34,6 @@ body {
 	font-weight: 300;
 }
 
-@media (width <) {
-	body {
-		padding: 0 8px 16px;
-		margin: 0 auto;
-		grid-template-columns: [l] 1fr [r];
-		width: max(var(--card-size), min(calc(1.5 * var(--card-size)), 100vw));
-	}
-}
-
 header {
 	grid-column-start: l;
 	grid-column-end: r;

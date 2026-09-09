@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 
 import {createReadStream} from "node:fs";
 import {stat} from "node:fs/promises";
@@ -28,7 +29,9 @@ function resolve(path) {
 }
 
 const server = createServer((req, res) => {
-	const path = resolve(new URL(req.url, "http://localhost:3000").pathname);
+	const path = resolve(
+		new URL(/** @type {string} */ (req.url), "http://localhost:3000").pathname,
+	);
 
 	stat(path).then(
 		() => {

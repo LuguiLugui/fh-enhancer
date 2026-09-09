@@ -172,8 +172,6 @@ class FhAction extends HTMLElement {
 			return;
 		}
 
-		console.log(this.numberOfBoughtEnhancements);
-
 		for (const cost of /** @type {NodeListOf<FhCost>} */ (
 			this.querySelectorAll("fh-cost")
 		)) {
@@ -277,9 +275,7 @@ class FhCost extends HTMLElement {
 			cost += increment;
 
 			if (numberOfBoughtEnhancements > 1) {
-				title += `, with an additional ${increment}g for the ${numberOfBoughtEnhancements} previously bought enhancement${
-					numberOfBoughtEnhancements > 1 ? "s" : ""
-				}`;
+				title += `, with an additional ${increment}g for the ${numberOfBoughtEnhancements} previously bought enhancements`;
 			} else {
 				title += `, with an additional ${increment}g for the previously bought enhancement`;
 			}
@@ -325,7 +321,7 @@ customElements.define(
 			/** @type {HTMLAnchorElement} */ (this.firstElementChild).href = "#";
 		}
 
-		handleEvent(event) {
+		handleEvent() {
 			if (this.#link) {
 				/** @type {HTMLAnchorElement} */ (this.firstElementChild).href =
 					this.#link;
