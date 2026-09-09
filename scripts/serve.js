@@ -4,9 +4,9 @@
 import {createReadStream} from "node:fs";
 import {stat} from "node:fs/promises";
 import {createServer} from "node:http";
-import {extname} from "node:path/posix";
+import {extname, join} from "node:path/posix";
 
-const root = new URL("../src/", import.meta.url);
+const root = new URL("../output/", import.meta.url);
 
 /** @type {Map<string, URL>} */
 const urlMap = new Map();
@@ -15,13 +15,12 @@ function resolve(path) {
 	let value = urlMap.get(path);
 	if (value == null) {
 		const originalPath = path;
-		if (path === "/") {
-			path = "index.html";
-		} else if (path.startsWith("/")) {
-			path = path.slice(1);
+		if (!extname(path)) {
+			path = join(path, "index.html");
 		}
 
 		value = new URL(path, root);
+		console.log(root.href, path, value.href);
 		urlMap.set(originalPath, value);
 	}
 
@@ -29,9 +28,17 @@ function resolve(path) {
 }
 
 const server = createServer((req, res) => {
-	const path = resolve(
-		new URL(/** @type {string} */ (req.url), "http://localhost:3000").pathname,
+	const requestUrl = new URL(
+		/** @type {string} */ (req.url),
+		"http://localhost:3000",
 	);
+
+	if (!requestUrl.pathname.startsWith("/fh-enhancer")) {
+		requestUrl.pathname = `/fh-enhancer${requestUrl.pathname}`;
+		return res.writeHead(302, {Location: requestUrl.href}).end();
+	}
+
+	const path = resolve(requestUrl.pathname.slice("/fh-enhancer/".length));
 
 	stat(path).then(
 		() => {
@@ -50,8 +57,10 @@ const server = createServer((req, res) => {
 			createReadStream(path).pipe(res);
 		},
 		() => {
+			res.setHeader("Content-Type", "text/html");
 			res.writeHead(404);
-			res.end();
+
+			createReadStream(resolve("404.html")).pipe(res);
 		},
 	);
 });

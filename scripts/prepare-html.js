@@ -311,6 +311,10 @@ await Promise.all(
 
 	await writeFile(new URL("index.html", outputFolder), jsdom.serialize());
 
+	if (buildForDeployment) {
+		document.head.appendChild(document.createElement("base")).href = "/fh-enhancer/";
+	}
+
 	document.body.classList.add("e404");
 	document.body.insertBefore(
 		document.createTextNode("The page you're visiting doesn't exist (anymore)."),
